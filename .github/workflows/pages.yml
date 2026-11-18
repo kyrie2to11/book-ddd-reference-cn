@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
 
 concurrency:
   group: pages
@@ -16,20 +17,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/upload-pages-artifact@v3
+      - run: touch docs/.nojekyll
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: docs
+          branch: gh-pages
+          folder: docs
+          git-config-name: jarvis65536
+          git-config-email: jarvis65536@gmail.com
+          commit-message: |
+            chore: 发布更新后的阅读站
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Publish
-        id: deployment
-        uses: actions/deploy-pages@v4
+            Co-Authored-By: liyawei-bot
+      - name: Request Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
